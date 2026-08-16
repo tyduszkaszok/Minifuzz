@@ -4,32 +4,33 @@ from typing import List
 
 class MutationFuzzer:
 
-    def __init__(self, seed: List[bytes],
-                 min_mutations: int = 2,
-                 max_mutations: int = 10) -> None:
-        self.seed = seed
+    def __init__(
+        self,
+        min_mutations: int = 2,
+        max_mutations: int = 10,
+    ) -> None:
         self.min_mutations = min_mutations
         self.max_mutations = max_mutations
-        self.reset()
+        self.mutators = [
+            self.delete_random_byte,
+            self.insert_random_byte,
+            self.flip_random_bit,
+        ]
 
-    def reset(self) -> None:
-        self.population = self.seed
-        self.seed_index = 0
+    def fuzz_full(self, b : bytes) -> List[bytes]:
+        frames_fuzzed = []
+        num_mutations = random.randint(self.min_mutations, self.max_mutations)
+        for _ in range(num_mutations):
+            b = self.fuzz_frame(b)
+            frames_fuzzed.append(b)
+        return frames_fuzzed
 
-    def fuzz(self) -> bytes:
-        if self.seed_index < len(self.seed):
-            self.inp = self.seed[self.seed_index]
-            self.seed_index += 1
-        else:
-            self.inp = self.create_candidate()
-        return self.inp
-
-    def create_candidate(self) -> bytes:
-        candidate = random.choice(self.seed)
-        num_mut = random.randint(self.min_mutations, self.max_mutations)
-        for _ in range(num_mut):
-            candidate = self.mutate(candidate)
-        return candidate
+    def fuzz_frame(self, b: bytes) -> bytes:
+        if not b:
+            return b
+        mutator = random.choice(self.mutators)
+        b = mutator(b)
+        return b
 
     @staticmethod
     def delete_random_byte(b : bytes) -> bytes:
@@ -57,11 +58,3 @@ class MutationFuzzer:
         new_byte = byte ^ bit
         return b[:pos] + bytes([new_byte]) + b[pos+1:]
 
-    def mutate(self, b : bytes):
-        mutators = [
-            self.delete_random_byte,
-            self.insert_random_byte,
-            self.flip_random_bit,
-        ]
-        mutator = random.choice(mutators)
-        return mutator(b)
