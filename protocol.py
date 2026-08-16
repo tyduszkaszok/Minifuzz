@@ -21,12 +21,10 @@ class ProtFrame:
         byte_right = self.value & 0xFF
         self.checksum = (self.magic + self.command.value  + byte_left + byte_right) % 256
 
-    def show_frame(self):
-        print(f"Magic: {hex(self.magic)} \
-              \n Command: {hex(self.command.value)} \
-              \n Value: {hex(self.value)} \
-              \n Checksum: {hex(self.checksum)}")
 
-
-frame = ProtFrame(Command.READ, 145)
-frame.show_frame()
+    def to_bytes(self) -> bytes:
+        magic_b = bytes([self.magic])
+        command_b = bytes([self.command.value])
+        value_b = self.value.to_bytes(2, byteorder="big")
+        checksum_b = bytes([self.checksum])
+        return magic_b + command_b + value_b + checksum_b
