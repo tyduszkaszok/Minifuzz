@@ -15,7 +15,12 @@ class MutationFuzzer:
             self.delete_random_byte,
             self.insert_random_byte,
             self.flip_random_bit,
+            self.flip_random_byte,
+            self.increase_byte,
+            self.decrease_byte
         ]
+
+        self.weights = [1, 1, 4, 2, 3, 3]
 
     def fuzz_full(self, b : bytes) -> List[bytes]:
         frames_fuzzed = []
@@ -26,12 +31,9 @@ class MutationFuzzer:
         return frames_fuzzed
 
     def fuzz_frame(self, b: bytes) -> bytes:
-        if not b:
-            return b
-        mutator = random.choice(self.mutators)
-        b = mutator(b)
-        return b
-
+        mutator = random.choices(self.mutators, weights=self.weights, k=1)[0]
+        return mutator(b)
+    
     @staticmethod
     def delete_random_byte(b : bytes) -> bytes:
         if not b:
@@ -42,8 +44,6 @@ class MutationFuzzer:
 
     @staticmethod
     def insert_random_byte(b : bytes) -> bytes:
-        if b is None:
-            return b
         pos = random.randint(0, len(b))
         random_byte = random.randint(0, 255)
         return b[:pos] + bytes([random_byte]) + b[pos:]
@@ -56,5 +56,29 @@ class MutationFuzzer:
         byte = b[pos]
         bit = 1 << random.randint(0, 7)
         new_byte = byte ^ bit
+
         return b[:pos] + bytes([new_byte]) + b[pos+1:]
 
+    @staticmethod
+    def flip_random_byte(b : bytes) -> bytes:
+        if not b:
+            return b
+        pos = random.randint(0, len(b)-1)
+        new_byte = b[pos] ^ 0xFF
+        return b[:pos] + bytes([new_byte]) + b[pos+1:]
+
+    @staticmethod
+    def increase_byte(b : bytes) -> bytes:
+        if not b:
+            return b
+        pos = random.randint(0, len(b) - 1)
+        new_byte = (b[pos] + 1) % 256
+        return b[:pos] + bytes([new_byte]) + b[pos+1:]
+
+    @staticmethod
+    def decrease_byte(b: bytes) -> bytes:
+        if not b:
+            return b
+        pos = random.randint(0, len(b) - 1)
+        new_byte = (b[pos] - 1) % 256
+        return b[:pos] + bytes([new_byte]) + b[pos + 1:]

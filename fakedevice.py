@@ -1,6 +1,8 @@
+import random
+
 from enum import Enum
 from protocol import Command
-
+from typing import Dict
 
 class ProtocolError(Exception):
     pass
@@ -28,13 +30,27 @@ class FakeDeviceStatus(Enum):
 
 class FakeDevice:
 
-    def receive_frame(self, b: bytes) -> FakeDeviceStatus:
+    def receive_frame(self, b: bytes) -> Dict:
         self._check_length(b)
         self._check_sof(b)
         self._check_checksum(b)
         self._check_command(b)
 
-        return FakeDeviceStatus.SUCCESS
+        cmd = Command(b[1])
+
+        if cmd == Command.PING:
+            return {"status": "SUCCESS", "Response": "PONG"}
+        
+        elif cmd == Command.READ:
+            read_data = random.randint(0, 255)
+            return {"status": "SUCCESS", "Read value": read_data}
+        
+        elif cmd == Command.WRITE:
+            value = int.from_bytes(b[2:4], byteorder="big")
+            return {
+                "status": "SUCCESS",
+                "action": f"ACK: Stored value {value}",
+            }
 
     def _check_length(self, b: bytes) -> bool:
         if len(b) != 5:

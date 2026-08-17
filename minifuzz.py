@@ -14,8 +14,9 @@ def format_frame_output(
         return f"  {label:<10} {hex_str}"
 
     try:
-        device.receive_frame(frame_bytes)
-        status_str = "[ACCEPTED]"
+        data_dict = device.receive_frame(frame_bytes)
+        key, val = list(data_dict.items())[1]
+        status_str = f"[ACCEPTED] {key}: {val}"
     except ProtocolError as e:
         status_str = f"[REJECTED: {type(e).__name__}] {e}"
 
