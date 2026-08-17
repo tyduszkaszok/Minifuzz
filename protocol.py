@@ -12,7 +12,9 @@ class ProtFrame:
     def __init__(self, command : Command, value : int):
         self.command = command
         if self.command == Command.PING and value != 0:
-            raise ValueError("...")
+            raise ValueError("Field 'value' should be 0 for the PING frame")
+        if value < 0 or value > 65535:
+            raise ValueError("Field 'value' should be in range 0-65535")
         self.value = value
         self.calculate_checksum()
 
