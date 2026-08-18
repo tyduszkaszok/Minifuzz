@@ -92,6 +92,7 @@ In order to obtain a fixed number of mutations for every valid frame, it is suff
 ```bash
 python3 minifuzz.py --min_mut 5 --max_mut 5
 ```
+The default value for both flags is 10.
 
 ## Running the tests
 
