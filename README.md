@@ -83,7 +83,7 @@ python3 minifuzz.py --count 33
 
 ## Running the tests
 
-The tests of the application are located in the `tests/` directory. They cover testing checksum calculation, valid frame construction for all three command types, and boundary values handling for `ProtFrame` objects, as well as asserting mutation process reliability and reproducibility for given seeds in `MutationFuzzer`.
+The tests of the application are located in the `tests/` directory. They cover testing checksum calculation, valid frame construction for all three command types, and boundary values handling for `ProtFrame` objects, as well as asserting mutation process reliability and reproducibility for given seeds in `MutationFuzzer`. Moreover, communication-related error handling testing is performed for the `FakeDevice` class as well.
 
 In order to run the tests, create a virtual Python environment (recommended) and install pytest:
 
