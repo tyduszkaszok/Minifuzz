@@ -1,17 +1,18 @@
+
 # MiniFuzz/1.0 Protocol Fuzzer
 
 ## What this project is about
 
-The goal of this project is to implement a Python apllication that:
-1. Generates valid data frames according to the MiniFuzz/1.0 protocol specification
-2. Produces sequences of malformed frames from the initial valid frame using different mutation techniques
-3. Simulates communication with a fake device that receives both valid and mutated frames, accepting or rejecting them
+The goal of this project is to implement a Python application that:
+1. Generates valid data frames according to the MiniFuzz/1.0 protocol specification.
+2. Produces sequences of malformed frames from the initial valid frame using different mutation techniques.
+3. Simulates communication with a fake device that receives both valid and mutated frames, accepting or rejecting them.
 
-As the result, the application's user gets a detailed text output where the mutation process for a given initial valid frame as well as corresponding responses from the fake device are tracked. 
+As a result, the application's user gets a detailed text output where the mutation process for a given initial valid frame as well as corresponding responses from the fake device are tracked. 
 
 **Example output:**
 
-```python
+```text
 --- Frame set no. 11 ---
   [VALID]    A5 03 00 00 A8    -> [ACCEPTED] Response: PONG
   [MUTATED]  A5 03 00 01 A8    -> [REJECTED: ChecksumMismatchError] Expected CS 0xa9, got 0xa8
@@ -22,18 +23,21 @@ As the result, the application's user gets a detailed text output where the muta
   [MUTATED]  A4 03 FF FC A9    -> [REJECTED: InvalidSOFError] Expected SOF 0xA5, got 0xa4
   [MUTATED]  5B 03 FF FC A9    -> [REJECTED: InvalidSOFError] Expected SOF 0xA5, got 0x5b
   [MUTATED]  03 FF FC A9       -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 4
+
 ```
 
 ## Running the application
 
-In order to run the application with default settings one should launch:
+In order to run the application with default settings, launch:
 
-```python
+```bash
 python3 minifuzz.py
-```
-This command runs the mutation process for **one** randomly prepared valid frame and applies a series of 20 randomly selected mutations:
 
-```python
+```
+
+This command runs the mutation process for **one** randomly prepared valid frame and applies a series of randomly selected mutations:
+
+```text
 --- Frame set no. 1 ---
   [VALID]    A5 03 00 00 A8
   [MUTATED]  A5 03 01 00 A8
@@ -45,14 +49,17 @@ This command runs the mutation process for **one** randomly prepared valid frame
   ...
   [MUTATED]  A3 A5 02 7E FF 53
   [MUTATED]  A3 A5 FD 7E FF 53
-```
-However, a detailed output that shows responses from the fake device can be enabled by adding the ```--device``` flag. In addition, to ensure reproducability of the outcomes one can add the ```--seed``` flag followed by a selected seed value:
 
-```python
+```
+
+A detailed output that shows responses from the fake device can be enabled by adding the `--device` flag. In addition, to ensure reproducibility of the outcomes, one can add the `--seed` flag followed by a selected seed value:
+
+```bash
 python3 minifuzz.py --device --seed 33
+
 ```
 
-```python
+```text
 --- Frame set no. 1 ---
   [VALID]    A5 03 00 00 A8    -> [ACCEPTED] Response: PONG
   [MUTATED]  A5 03 01 00 A8    -> [REJECTED: ChecksumMismatchError] Expected CS 0xa9, got 0xa8
@@ -62,43 +69,86 @@ python3 minifuzz.py --device --seed 33
   [MUTATED]  A5 02 00 00 56    -> [REJECTED: ChecksumMismatchError] Expected CS 0xa7, got 0x56
   [MUTATED]  A5 02 00 00 55    -> [REJECTED: ChecksumMismatchError] Expected CS 0xa7, got 0x55
   ...
-    [MUTATED]  A3 A5 02 7E FF 53 -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 6
+  [MUTATED]  A3 A5 02 7E FF 53 -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 6
   [MUTATED]  A3 A5 FD 7E FF 53 -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 6
-```
-Moreover, it is possible to add the ```--count``` flag followed by an integer value that determines the number of generated frames:
 
-```python
+```
+
+Moreover, it is possible to add the `--count` flag followed by an integer value that determines the number of generated frame sets:
+
+```bash
 python3 minifuzz.py --count 33
+
 ```
-```python
---- Frame set no. 1 ---
-  [VALID]    A5 03 00 00 A8
-  [MUTATED]  A5 03 00 00 A9
-  [MUTATED]  A5 03 00 01 A9
-  [MUTATED]  A5 03 20 01 A9
-...
 
---- Frame set no. 2 ---
-  [VALID]    A5 02 00 76 1D
-  [MUTATED]  A5 02 00 66 1D
-  [MUTATED]  A5 02 00 67 1D
-  [MUTATED]  A5 02 00 65 1D
+## Running the tests
 
-...
-...
-...
+The tests of the application are located in the `tests/` directory. They cover testing checksum calculation, valid frame construction for all three command types, and boundary values handling for `ProtFrame` objects, as well as asserting mutation process reliability and reproducibility for given seeds in `MutationFuzzer`.
 
---- Frame set no. 32 ---
-  [VALID]    A5 03 00 00 A8
-  [MUTATED]  A5 03 00 FF A8
-  [MUTATED]  A4 03 00 FF A8
-  [MUTATED]  A5 03 00 FF A8
-...
+In order to run the tests, create a virtual Python environment (recommended) and install pytest:
 
---- Frame set no. 33 ---
-  [VALID]    A5 02 00 F2 99
-  [MUTATED]  A5 02 00 F2
-  [MUTATED]  A5 42 00 F2
-  [MUTATED]  A5 42 01 F2
-...
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install pytest
+
 ```
+
+Then, run the test suite:
+
+```bash
+python3 -m pytest -v
+
+```
+
+## MiniFuzz/1.0 Protocol
+
+The protocol is a simple binary communication mechanism simulating data transmission between IoT devices. It produces 5-byte frames consisting of 4 fields:
+
+| Field | Size | Description |
+| --- | --- | --- |
+| **SOF** (Start of Frame) | 1 byte | Magic byte, fixed value `0xA5`. |
+| **Command** | 1 byte | Command type: `READ` (`0x01`), `WRITE` (`0x02`), `PING` (`0x03`). |
+| **Value** | 2 bytes | Big-endian unsigned integer (`0-65535`). Must be `0` for `PING`. |
+| **Checksum** | 1 byte | Sum of the first 4 bytes modulo 256. |
+
+The Command field supports three operations:
+
+* `READ` (`0x01`): Requests reading data from a specified device memory location or register. The 2-byte Value field specifies the target address (`0-65535`).
+* `WRITE` (`0x02`): Delivers a 2-byte payload value (`0-65535`) to be stored or processed by the target device.
+* `PING` (`0x03`): Heartbeat frame used to test connectivity. The Value field is unused and must strictly be set to `0` (`0x0000`).
+
+## Mutation strategies
+
+The `MutationFuzzer` class provides a set of different mutations applied to the protocol frames, divided into two main categories:
+
+### 1. **Size-altering mutations**
+
+Responsible for modifying the length of frames by inserting or deleting a randomly selected byte.
+
+* `delete_random_byte`: Deletes a byte at a uniform random position.
+* `insert_random_byte`: Inserts a random byte (`0-255`) at a uniform random position.
+
+### 2. **Content-altering mutations**
+
+Responsible for modifying bit or byte values within the frame:
+
+* `flip_random_bit`: Inverts a single randomly chosen bit using a bitwise XOR operation.
+* `flip_random_byte`: Inverts all 8 bits of a randomly selected byte using XOR `0xFF`.
+* `increase_byte`: Increments a randomly selected byte by `1` (modulo 256).
+* `decrease_byte`: Decrements a randomly selected byte by `1` (modulo 256).
+
+### Selection Weights & Rationale
+
+Mutations are selected using `fuzz_frame()` according to assigned probability weights:
+
+* `delete_random_byte`: 1
+* `insert_random_byte`: 1
+* `flip_random_bit`: 4
+* `flip_random_byte`: 2
+* `increase_byte`: 3
+* `decrease_byte`: 3
+
+**Rationale:** These probability values were chosen intuitively based on real-world transmission error scenarios. Single-bit flips (noise on physical lines) and minor arithmetic shifts (off-by-one errors) are far more common than complete byte corruption or structural packet loss/insertion.
+
+The `fuzz_full()` function applies a sequence of consecutive mutations to an initial valid frame and returns the full mutation history.
