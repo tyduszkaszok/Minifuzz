@@ -14,9 +14,13 @@ class MutationFuzzer:
     """
     def __init__(
         self,
-        min_mutations: int = 2,
+        min_mutations: int = 10,
         max_mutations: int = 10,
     ) -> None:
+        if min_mutations > max_mutations:
+            raise ValueError(
+                    f"min_mutations ({min_mutations}) cannot be greater than max_mutations ({max_mutations})"
+                ) 
         self.min_mutations = min_mutations
         self.max_mutations = max_mutations
         self.mutators = [

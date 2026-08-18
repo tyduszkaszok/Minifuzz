@@ -43,13 +43,26 @@ def main():
         help="simulates communication with a fake device",
         action="store_true",
     )
+    parser.add_argument(
+        "--min_mut",
+        help="specifies the minimal number of mutations to be applied for a single frame",
+        type=int,
+        default=10,
+    )
+    parser.add_argument(
+        "--max_mut",
+        help="specifies the maximal number of mutations to be applied for a single frame",
+        type=int,
+        default=10
+    )
+
     args = parser.parse_args()
 
     if args.seed is not None:
         random.seed(args.seed)
 
     device = FakeDevice() if args.device else None
-    fuzzer = MutationFuzzer(min_mutations=20, max_mutations=20)
+    fuzzer = MutationFuzzer(min_mutations=args.min_mut, max_mutations=args.max_mut)
 
     for i in range(args.count):
         command = random.choice(list(Command))

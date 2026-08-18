@@ -1,7 +1,7 @@
-import pytest
 from protocol import Command, ProtFrame
 from mutator import MutationFuzzer
 import random
+import pytest
 
 def test_mutation_difference():
     frame_original = ProtFrame(Command.READ, 21)
@@ -45,3 +45,7 @@ def test_fuzzer_reproducibility_with_seed():
 def test_fuzz_empty_bytes_handling():
     fuzzer = MutationFuzzer()
     assert fuzzer.fuzz_frame(b"") == b""
+
+def test_min_max_handling():
+    with pytest.raises(ValueError):
+        MutationFuzzer(min_mutations=20, max_mutations=10)

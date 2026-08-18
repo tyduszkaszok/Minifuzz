@@ -81,6 +81,18 @@ python3 minifuzz.py --count 33
 
 ```
 
+Last but not least, one can use the `--min_mut` and `--max_mut` flags to specify the range for the number of mutations applied to each initial valid frame. During the fuzzing procedure, a random amount of distortions is selected within this range for every initial frame:
+
+```bash
+python3 minifuzz.py --min_mut 5 --max_mut 10
+```
+
+In order to obtain a fixed number of mutations for every valid frame, it is sufficient to set both `--min_mut` and `--max_mut` to the same value:
+
+```bash
+python3 minifuzz.py --min_mut 5 --max_mut 5
+```
+
 ## Running the tests
 
 The tests of the application are located in the `tests/` directory. They cover testing checksum calculation, valid frame construction for all three command types, and boundary values handling for `ProtFrame` objects, as well as asserting mutation process reliability and reproducibility for given seeds in `MutationFuzzer`. Moreover, communication-related error handling testing is performed for the `FakeDevice` class as well.
