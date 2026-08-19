@@ -13,16 +13,18 @@ As a result, the application's user gets a detailed text output where the mutati
 **Example output:**
 
 ```text
---- Frame set no. 11 ---
+--- Frame set no. 10 ---
   [VALID]    A5 03 00 00 A8    -> [ACCEPTED] Response: PONG
-  [MUTATED]  A5 03 00 01 A8    -> [REJECTED: ChecksumMismatchError] Expected CS 0xa9, got 0xa8
-  [MUTATED]  A5 03 00 01 A9    -> [ACCEPTED] Response: PONG
-  [MUTATED]  A5 03 00 FE A9    -> [REJECTED: ChecksumMismatchError] Expected CS 0xa6, got 0xa9
-  [MUTATED]  A5 03 00 FC A9    -> [REJECTED: ChecksumMismatchError] Expected CS 0xa4, got 0xa9
-  [MUTATED]  A4 03 00 FC A9    -> [REJECTED: InvalidSOFError] Expected SOF 0xA5, got 0xa4
-  [MUTATED]  A4 03 FF FC A9    -> [REJECTED: InvalidSOFError] Expected SOF 0xA5, got 0xa4
-  [MUTATED]  5B 03 FF FC A9    -> [REJECTED: InvalidSOFError] Expected SOF 0xA5, got 0x5b
-  [MUTATED]  03 FF FC A9       -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 4
+  [MUTATED]  A5 02 00 00 A8    -> [REJECTED: ChecksumMismatchError] Expected checksum 0xa7, got 0xa8
+  [MUTATED]  A5 02 00 00 A7    -> [ACCEPTED] action: ACK: Stored value 0
+  [MUTATED]  A5 02 00 00 A7    -> [ACCEPTED] action: ACK: Stored value 0
+  [MUTATED]  A5 03 00 00 A8    -> [ACCEPTED] Response: PONG
+  [MUTATED]  A5 03 FF 00 A8    -> [REJECTED: ChecksumMismatchError] Expected checksum 0xa7, got 0xa8
+  [MUTATED]  A5 03 FE 00 A8    -> [REJECTED: ChecksumMismatchError] Expected checksum 0xa6, got 0xa8
+  [MUTATED]  A5 03 FE 00 A9    -> [REJECTED: ChecksumMismatchError] Expected checksum 0xa6, got 0xa9
+  [MUTATED]  A5 03 FE FF A9    -> [REJECTED: ChecksumMismatchError] Expected checksum 0xa5, got 0xa9
+  [MUTATED]  A5 03 FE CD FF A9 -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 6
+  [MUTATED]  A5 03 FE CD 00 A9 -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 6
 
 ```
 ## Requirements
@@ -62,16 +64,13 @@ python3 minifuzz.py --device --seed 33
 
 ```text
 --- Frame set no. 1 ---
-  [VALID]    A5 03 00 00 A8    -> [ACCEPTED] Response: PONG
-  [MUTATED]  A5 03 01 00 A8    -> [REJECTED: ChecksumMismatchError] Expected CS 0xa9, got 0xa8
-  [MUTATED]  A5 03 01 00 57    -> [REJECTED: ChecksumMismatchError] Expected CS 0xa9, got 0x57
-  [MUTATED]  A5 02 01 00 57    -> [REJECTED: ChecksumMismatchError] Expected CS 0xa8, got 0x57
-  [MUTATED]  A5 02 01 00 56    -> [REJECTED: ChecksumMismatchError] Expected CS 0xa8, got 0x56
-  [MUTATED]  A5 02 00 00 56    -> [REJECTED: ChecksumMismatchError] Expected CS 0xa7, got 0x56
-  [MUTATED]  A5 02 00 00 55    -> [REJECTED: ChecksumMismatchError] Expected CS 0xa7, got 0x55
+  [VALID]    A5 01 5C 92 94    -> [ACCEPTED] Read value: 63799
+  [MUTATED]  A5 01 5C 96 94    -> [REJECTED: ChecksumMismatchError] Expected checksum 0x98, got 0x94
+  [MUTATED]  FF A5 01 5C 96 94 -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 6
+  [MUTATED]  FF A5 00 5C 96 94 -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 6
   ...
-  [MUTATED]  A3 A5 02 7E FF 53 -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 6
-  [MUTATED]  A3 A5 FD 7E FF 53 -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 6
+  [MUTATED]  A5 A5 00 53 FF    -> [REJECTED: ChecksumMismatchError] Expected checksum 0x9d, got 0xff
+  [MUTATED]  A5 A5 00 52 FF    -> [REJECTED: ChecksumMismatchError] Expected checksum 0x9c, got 0xff
 
 ```
 
