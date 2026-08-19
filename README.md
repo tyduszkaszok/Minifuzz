@@ -169,7 +169,7 @@ To address this, a set of fixing mutations is provided in the form of function w
   * `increase_byte`
   * `decrease_byte`
 
-* `correct_sof_wrapper(correct_checksum_wrapper(...))` 
+* `correct_checksum_wrapper(correct_sof_wrapper(...))` 
   * `flip_random_bit`
   * `flip_random_byte`
   * `increase_byte`
@@ -190,6 +190,6 @@ Mutations are selected in `fuzz_frame()` according to assigned probability weigh
 * **Fixing mutations (20% overall probability):**
   * `correct_checksum_wrapper` (4 variants): weight of 4 each
   * `correct_sof_wrapper` (4 variants): weight of 4 each 
-  * `correct_sof_wrapper(correct_checksum_wrapper(...))` (4 variants): weight of 6 each 
+  * `correct_checksum_wrapper(correct_sof_wrapper(...))` (4 variants): weight of 6 each 
 
 These probability values were chosen intuitively based on real-world transmission error scenarios. Single-bit flips (noise on physical lines) and minor arithmetic shifts (off-by-one errors) are far more common than complete byte corruption or structural packet loss/insertion. Furthermore, maintaining a 4:1 overall ratio (80% blind mutations to 20% fixing/smart mutations) balances raw physical line error simulation with business logic testing. Notably, the weight ratios for both basic and fixing mutations can be further adjusted based on the specification of the simulated device or derived empirically.

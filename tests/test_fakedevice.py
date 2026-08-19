@@ -46,7 +46,7 @@ def test_receive_frame_read_success():
 
     assert response["status"] == "SUCCESS"
     assert "Read value" in response
-    assert 0 <= response["Read value"] <= 255
+    assert 0 <= response["Read value"] <= 65535
 
 
 def test_receive_frame_write_success():
@@ -55,3 +55,7 @@ def test_receive_frame_write_success():
 
     assert response["status"] == "SUCCESS"
     assert response["action"] == "ACK: Stored value 256"
+
+def test_receive_frame_empty_bytes():
+    with pytest.raises(InvalidLengthError):
+        FakeDevice().receive_frame(b"")

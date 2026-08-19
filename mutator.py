@@ -8,8 +8,10 @@ class MutationFuzzer:
     Attributes:
         min_mutations (int): Lower boundary of the number of mutations to apply.
         max_mutations (int): Upper boundary of the number of mutations to apply.
-        mutators (list[Callable[[bytes], bytes]]): List of mutation functions.
-            During fuzzing, specific mutators are chosen according to probability weights.
+        mutators (list[Callable[[bytes], bytes]]): List of basic mutation functions.
+        fixing_mutators (list[Callable[[bytes], bytes]]): List of fixing mutation functions.
+        all_mutators (list[Callable[[bytes], bytes]]): List of both basic and fixing mutators.
+             During fuzzing, specific mutators are chosen according to probability weights.
         weights (list[int]): List of probability weights corresponding to each mutator.
     """
     def __init__(
@@ -23,7 +25,7 @@ class MutationFuzzer:
                 ) 
         self.min_mutations = min_mutations
         self.max_mutations = max_mutations
-        self.mutators = [
+        self.basic_mutators = [
             self.delete_random_byte,
             self.insert_random_byte,
             self.flip_random_bit,
@@ -43,13 +45,13 @@ class MutationFuzzer:
             self.correct_sof_wrapper(self.increase_byte),
             self.correct_sof_wrapper(self.decrease_byte),
 
-            self.correct_sof_wrapper(self.correct_checksum_wrapper(self.flip_random_bit)),
-            self.correct_sof_wrapper(self.correct_checksum_wrapper(self.flip_random_byte)),
-            self.correct_sof_wrapper(self.correct_checksum_wrapper(self.increase_byte)),
-            self.correct_sof_wrapper(self.correct_checksum_wrapper(self.decrease_byte))
+            self.correct_checksum_wrapper(self.correct_sof_wrapper(self.flip_random_bit)),
+            self.correct_checksum_wrapper(self.correct_sof_wrapper(self.flip_random_byte)),
+            self.correct_checksum_wrapper(self.correct_sof_wrapper(self.increase_byte)),
+            self.correct_checksum_wrapper(self.correct_sof_wrapper(self.decrease_byte)),
         ]
 
-        self.all_mutators = self.mutators + self.fixing_mutators
+        self.all_mutators = self.basic_mutators + self.fixing_mutators
 
         self.weights = [16, 16, 64, 32, 48, 48, 4, 4, 4, 4, 4, 4, 4, 4, 6, 6, 6, 6]
 
