@@ -66,7 +66,7 @@ def main():
 
     for i in range(args.count):
         command = random.choice(list(Command))
-        value = 0 if command == Command.PING else random.randint(0, 255)
+        value = 0 if command == Command.PING else random.randint(0, 65535)
 
         frame = ProtFrame(command, value)
         valid_bytes = frame.to_bytes()
