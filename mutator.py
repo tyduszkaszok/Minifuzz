@@ -53,7 +53,9 @@ class MutationFuzzer:
 
         self.all_mutators = self.basic_mutators + self.fixing_mutators
 
-        self.weights = [16, 16, 64, 32, 48, 48, 4, 4, 4, 4, 4, 4, 4, 4, 6, 6, 6, 6]
+        self.weights = [
+            3, 3, 12, 6, 9, 9, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3
+        ]
 
     def fuzz_full(self, b : bytes) -> List[bytes]:
         """Generates a sequence of mutated frames derived from an initial valid frame.

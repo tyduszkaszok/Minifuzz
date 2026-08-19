@@ -25,6 +25,9 @@ As a result, the application's user gets a detailed text output where the mutati
   [MUTATED]  03 FF FC A9       -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 4
 
 ```
+## Requirements
+
+The application was developed and tested using **Python 3.14.4** and **pytest 9.1.1**.
 
 ## Running the application
 
@@ -32,7 +35,6 @@ In order to run the application with default settings, launch:
 
 ```bash
 python3 minifuzz.py
-
 ```
 
 This command runs the mutation process for **one** randomly prepared valid frame and applies a series of randomly selected mutations:
@@ -56,7 +58,6 @@ A detailed output that shows responses from the fake device can be enabled by ad
 
 ```bash
 python3 minifuzz.py --device --seed 33
-
 ```
 
 ```text
@@ -78,7 +79,6 @@ Moreover, it is possible to add the `--count` flag followed by an integer value 
 
 ```bash
 python3 minifuzz.py --count 33
-
 ```
 
 Last but not least, one can use the `--min_mut` and `--max_mut` flags to specify the range for the number of mutations applied to each initial valid frame. During the fuzzing procedure, a random amount of distortions is selected within this range for every initial frame:
@@ -104,14 +104,12 @@ In order to run the tests, create a virtual Python environment (recommended) and
 python3 -m venv .venv
 source .venv/bin/activate
 pip install pytest
-
 ```
 
 Then, run the test suite:
 
 ```bash
 python3 -m pytest -v
-
 ```
 
 ## MiniFuzz/1.0 Protocol
@@ -175,21 +173,23 @@ To address this, a set of fixing mutations is provided in the form of function w
   * `increase_byte`
   * `decrease_byte`
 
+This approach enables deeper protocol testing.
+
 ### Selection Weights & Rationale
 
 Mutations are selected in `fuzz_frame()` according to assigned probability weights. The `fuzz_full()` function applies a sequence of these consecutive mutations to an initial valid frame and returns the full mutation history. The weights for every mutation are:
 
-* **Basic mutations (80% overall probability):**
-  * `delete_random_byte`: 16
-  * `insert_random_byte`: 16
-  * `flip_random_bit`: 64
-  * `flip_random_byte`: 32
-  * `increase_byte`: 48
-  * `decrease_byte`: 48
+* **Basic mutations (60% overall probability):**
+  * `delete_random_byte`: 3
+  * `insert_random_byte`: 3
+  * `flip_random_bit`: 12
+  * `flip_random_byte`: 6
+  * `increase_byte`: 9
+  * `decrease_byte`: 9
 
-* **Fixing mutations (20% overall probability):**
-  * `correct_checksum_wrapper` (4 variants): weight of 4 each
-  * `correct_sof_wrapper` (4 variants): weight of 4 each 
-  * `correct_checksum_wrapper(correct_sof_wrapper(...))` (4 variants): weight of 6 each 
+* **Fixing mutations (40% overall probability):**
+  * `correct_checksum_wrapper` (4 variants): weight of 2 each (total = 8)
+  * `correct_sof_wrapper` (4 variants): weight of 2 each (total = 8)
+  * `correct_checksum_wrapper(correct_sof_wrapper(...))` (4 variants): weight of 3 each (total = 12)
 
-These probability values were chosen intuitively based on real-world transmission error scenarios. Single-bit flips (noise on physical lines) and minor arithmetic shifts (off-by-one errors) are far more common than complete byte corruption or structural packet loss/insertion. Furthermore, maintaining a 4:1 overall ratio (80% blind mutations to 20% fixing/smart mutations) balances raw physical line error simulation with business logic testing. Notably, the weight ratios for both basic and fixing mutations can be further adjusted based on the specification of the simulated device or derived empirically.
+These probability values were chosen intuitively based on real-world transmission error scenarios. Single-bit flips (noise on physical lines) and minor arithmetic shifts (off-by-one errors) are far more common than complete byte corruption or structural packet loss/insertion. Furthermore, maintaining a 3:2 overall ratio (60% blind mutations to 40% fixing/smart mutations) balances raw physical line error simulation with business logic testing. Notably, the weight ratios for both basic and fixing mutations can be further adjusted based on the specification of the simulated device or derived empirically.
