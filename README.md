@@ -44,15 +44,12 @@ This command runs the mutation process for **one** randomly prepared valid frame
 ```text
 --- Frame set no. 1 ---
   [VALID]    A5 03 00 00 A8
-  [MUTATED]  A5 03 01 00 A8
-  [MUTATED]  A5 03 01 00 57
-  [MUTATED]  A5 02 01 00 57
-  [MUTATED]  A5 02 01 00 56
-  [MUTATED]  A5 02 00 00 56
-  [MUTATED]  A5 02 00 00 55
+  [MUTATED]  A5 03 FF 00 A7
+  [MUTATED]  A5 03 FF 00 A6
+  [MUTATED]  A5 FC FF 00 A0
   ...
-  [MUTATED]  A3 A5 02 7E FF 53
-  [MUTATED]  A3 A5 FD 7E FF 53
+  [MUTATED]  A5 FC 00 00 A0
+  [MUTATED]  A4 FC 00 00 A0
 
 ```
 
@@ -63,14 +60,13 @@ python3 minifuzz.py --device --seed 33
 ```
 
 ```text
---- Frame set no. 1 ---
-  [VALID]    A5 01 5C 92 94    -> [ACCEPTED] Read value: 63799
-  [MUTATED]  A5 01 5C 96 94    -> [REJECTED: ChecksumMismatchError] Expected checksum 0x98, got 0x94
-  [MUTATED]  FF A5 01 5C 96 94 -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 6
-  [MUTATED]  FF A5 00 5C 96 94 -> [REJECTED: InvalidLengthError] Expected 5 bytes, got 6
+  [VALID]    A5 03 00 00 A8    -> [ACCEPTED] Response: PONG
+  [MUTATED]  A5 03 FF 00 A7    -> [REJECTED: InvalidValueError] PING frame must have value set to 0, got 65280
+  [MUTATED]  A5 03 FF 00 A6    -> [REJECTED: ChecksumMismatchError] Expected checksum 0xa7, got 0xa6
+  [MUTATED]  A5 FC FF 00 A0    -> [REJECTED: UnknownCommandError] Unknown command byte: 0xfc
   ...
-  [MUTATED]  A5 A5 00 53 FF    -> [REJECTED: ChecksumMismatchError] Expected checksum 0x9d, got 0xff
-  [MUTATED]  A5 A5 00 52 FF    -> [REJECTED: ChecksumMismatchError] Expected checksum 0x9c, got 0xff
+  [MUTATED]  A5 FC 00 00 A0    -> [REJECTED: ChecksumMismatchError] Expected checksum 0xa1, got 0xa0
+  [MUTATED]  A4 FC 00 00 A0    -> [REJECTED: InvalidSOFError] Expected SOF 0xA5, got 0xa4
 
 ```
 
