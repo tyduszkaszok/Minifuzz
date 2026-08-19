@@ -25,37 +25,39 @@ class MutationFuzzer:
                 ) 
         self.min_mutations = min_mutations
         self.max_mutations = max_mutations
-        self.basic_mutators = [
-            self.delete_random_byte,
-            self.insert_random_byte,
-            self.flip_random_bit,
-            self.flip_random_byte,
-            self.increase_byte,
-            self.decrease_byte
+        basic_weighted: list[tuple[Callable[[bytes], bytes], int]] = [
+            (self.delete_random_byte, 3),
+            (self.insert_random_byte, 3),
+            (self.flip_random_bit, 12),
+            (self.flip_random_byte, 6),
+            (self.increase_byte, 8),
+            (self.decrease_byte, 8),
+            (self.set_boundary_byte, 2)
         ]
 
-        self.fixing_mutators = [
-            self.correct_checksum_wrapper(self.flip_random_bit),
-            self.correct_checksum_wrapper(self.flip_random_byte),
-            self.correct_checksum_wrapper(self.increase_byte),
-            self.correct_checksum_wrapper(self.decrease_byte), 
+        fixing_weighted: list[tuple[Callable[[bytes], bytes], int]] = [
 
-            self.correct_sof_wrapper(self.flip_random_bit),
-            self.correct_sof_wrapper(self.flip_random_byte),
-            self.correct_sof_wrapper(self.increase_byte),
-            self.correct_sof_wrapper(self.decrease_byte),
+            (self.correct_checksum_wrapper(self.flip_random_bit), 2),
+            (self.correct_checksum_wrapper(self.flip_random_byte), 2),
+            (self.correct_checksum_wrapper(self.increase_byte), 2),
+            (self.correct_checksum_wrapper(self.decrease_byte), 2),
 
-            self.correct_checksum_wrapper(self.correct_sof_wrapper(self.flip_random_bit)),
-            self.correct_checksum_wrapper(self.correct_sof_wrapper(self.flip_random_byte)),
-            self.correct_checksum_wrapper(self.correct_sof_wrapper(self.increase_byte)),
-            self.correct_checksum_wrapper(self.correct_sof_wrapper(self.decrease_byte)),
+            (self.correct_sof_wrapper(self.flip_random_bit), 2),
+            (self.correct_sof_wrapper(self.flip_random_byte), 2),
+            (self.correct_sof_wrapper(self.increase_byte), 2),
+            (self.correct_sof_wrapper(self.decrease_byte), 2),
+
+            (self.correct_checksum_wrapper(self.correct_sof_wrapper(self.flip_random_bit)), 3),
+            (self.correct_checksum_wrapper(self.correct_sof_wrapper(self.flip_random_byte)), 3),
+            (self.correct_checksum_wrapper(self.correct_sof_wrapper(self.increase_byte)), 3),
+            (self.correct_checksum_wrapper(self.correct_sof_wrapper(self.decrease_byte)), 3),
         ]
 
-        self.all_mutators = self.basic_mutators + self.fixing_mutators
+        self.basic_mutators = [mutator for mutator, _ in basic_weighted]
+        self.fixing_mutators = [mutator for mutator, _ in fixing_weighted]
 
-        self.weights = [
-            3, 3, 12, 6, 9, 9, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3
-        ]
+        all_weighted = basic_weighted + fixing_weighted
+        self.all_mutators, self.weights = zip(*all_weighted)
 
     def fuzz_full(self, b : bytes) -> List[bytes]:
         """Generates a sequence of mutated frames derived from an initial valid frame.
@@ -138,6 +140,15 @@ class MutationFuzzer:
         pos = random.randint(0, len(b) - 1)
         new_byte = (b[pos] - 1) % 256
         return b[:pos] + bytes([new_byte]) + b[pos + 1 :]
+
+    @staticmethod
+    def set_boundary_byte(b: bytes) -> bytes:
+        """Replaces a random byte with a boundary value (0x00, 0xFF, 0x7F, 0x80)."""
+        if not b:
+            return b
+        pos = random.randint(0, len(b) - 1)
+        boundary_value = random.choice([0x00, 0xFF, 0x7F, 0x80])
+        return b[:pos] + bytes([boundary_value]) + b[pos + 1 :]
 
     @staticmethod
     def correct_sof_wrapper(mutator: Callable[[bytes], bytes]) -> Callable[[bytes], bytes]:

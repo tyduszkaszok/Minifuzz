@@ -50,6 +50,16 @@ def test_decrease_byte_keeps_length_but_changes_data():
     assert len(mutated) == len(original)
     assert mutated != original
 
+def test_set_boundary_byte_length_and_value():
+    original = b"\xa5\x03\x00\x00\xa8"
+    mutated = MutationFuzzer.set_boundary_byte(original)
+    assert len(mutated) == len(original)
+    diffs = [i for i in range(len(original)) if original[i] != mutated[i]]
+    assert len(diffs) in (0, 1)
+    if diffs:
+        changed_index = diffs[0]
+        assert mutated[changed_index] in {0x00, 0xFF, 0x7F, 0x80}
+
 def test_fuzzer_reproducibility_with_seed():
     original = b"\xa5\x03\x00\x00\xa8"
     random.seed(44)

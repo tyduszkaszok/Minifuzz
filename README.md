@@ -143,6 +143,7 @@ Responsible for modifying bit or byte values within the frame:
 * `flip_random_byte`: Inverts all 8 bits of a randomly selected byte using XOR `0xFF`.
 * `increase_byte`: Increments a randomly selected byte by `1` (modulo 256).
 * `decrease_byte`: Decrements a randomly selected byte by `1` (modulo 256).
+* `set_boundary_byte`: Replaces a randomly selected byte with a boundary value (`0x00`, `0xFF`, `0x7F`, or `0x80`).
 
 ### 3. **Fixing mutations**
 
@@ -179,8 +180,9 @@ Mutations are selected in `fuzz_frame()` according to assigned probability weigh
   * `insert_random_byte`: 3
   * `flip_random_bit`: 12
   * `flip_random_byte`: 6
-  * `increase_byte`: 9
-  * `decrease_byte`: 9
+  * `increase_byte`: 8
+  * `decrease_byte`: 8
+  * `set_boundary_byte`: 2
 
 * **Fixing mutations (40% overall probability):**
   * `correct_checksum_wrapper` (4 variants): weight of 2 each (total = 8)
