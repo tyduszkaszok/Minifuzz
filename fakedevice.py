@@ -21,6 +21,9 @@ class ChecksumMismatchError(ProtocolError):
 class UnknownCommandError(ProtocolError):
     """Raised when the frame contains an unrecognized command byte."""
 
+class InvalidValueError(ProtocolError):
+    """Raised when a frame payload value violates command constraints (e.g., non-zero value for PING)."""
+
 class FakeDevice:
     """Simulates a device processing incoming protocol frames and returning status responses."""
 
@@ -46,6 +49,7 @@ class FakeDevice:
         self._check_sof(b)
         self._check_checksum(b)
         self._check_command(b)
+        self._check_value(b)
 
         cmd = Command(b[1])
 
@@ -93,4 +97,15 @@ class FakeDevice:
         valid_commands = [c.value for c in Command]
         if b[1] not in valid_commands:
             raise UnknownCommandError(f"Unknown command byte: {hex(b[1])}")
+        return True
+
+    def _check_value(self, b: bytes) -> bool:
+        """Validates payload value constraints based on the command type."""
+        cmd = Command(b[1])
+        value = int.from_bytes(b[2:4], byteorder="big")
+
+        if cmd == Command.PING and value != 0:
+            raise InvalidValueError(
+                f"PING frame must have value set to 0, got {value}"
+            )
         return True

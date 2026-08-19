@@ -26,7 +26,6 @@ def test_insert_random_byte_lengthens_buffer():
 def test_flip_random_bit_keeps_length_but_changes_data():
     original = b"\xa5\x01\x00\x0a\xb0"  
     mutated = MutationFuzzer.flip_random_bit(original)
-
     assert len(mutated) == len(original)  
     assert mutated != original  
 
@@ -53,14 +52,12 @@ def test_decrease_byte_keeps_length_but_changes_data():
 
 def test_fuzzer_reproducibility_with_seed():
     original = b"\xa5\x03\x00\x00\xa8"
-
     random.seed(44)
     fuzzer1 = MutationFuzzer()
     res1 = fuzzer1.fuzz_frame(original)
     random.seed(44)
     fuzzer2 = MutationFuzzer()
     res2 = fuzzer2.fuzz_frame(original)
-
     assert res1 == res2
 
 def test_fuzz_empty_bytes_handling():
