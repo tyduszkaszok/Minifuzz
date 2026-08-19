@@ -125,9 +125,9 @@ The protocol is a simple binary communication mechanism simulating data transmis
 
 The Command field supports three operations:
 
-* `READ` (`0x01`): Requests reading data from a specified device memory location or register. The 2-byte Value field specifies the target address (`0-65535`).
-* `WRITE` (`0x02`): Delivers a 2-byte payload value (`0-65535`) to be stored or processed by the target device.
-* `PING` (`0x03`): Heartbeat frame used to test connectivity. The Value field is unused and must strictly be set to `0` (`0x0000`).
+* `READ` (`0x01`): Requests reading data from a specified device memory location or register. The 2-byte Value field specifies the target address (`0-65535`). In response, the fake device sends a random 2-byte value.
+* `WRITE` (`0x02`): Delivers a 2-byte payload value (`0-65535`) to be stored or processed by the target device. In response, the fake device returns an acknowledgment (ACK).
+* `PING` (`0x03`): Heartbeat frame used to test connectivity. The Value field is unused and must strictly be set to `0` (`0x0000`). In response, the fake device returns PONG.
 
 ## Mutation strategies
 
