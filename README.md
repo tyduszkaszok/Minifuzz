@@ -133,7 +133,7 @@ The Command field supports three operations:
 
 ## Mutation strategies
 
-The `MutationFuzzer` class provides a set of different mutations applied to the protocol frames, divided into two main categories:
+The `MutationFuzzer` class provides a set of different mutations applied to the protocol frames, divided into three main categories:
 
 ### 1. **Size-altering mutations**
 
@@ -151,17 +151,45 @@ Responsible for modifying bit or byte values within the frame:
 * `increase_byte`: Increments a randomly selected byte by `1` (modulo 256).
 * `decrease_byte`: Decrements a randomly selected byte by `1` (modulo 256).
 
+### 3. **Fixing mutations**
+
+Due to the hierarchy of exceptions thrown by the `FakeDevice` class (1. `InvalidLengthError`, 2. `InvalidSOFError`, 3. `ChecksumMismatchError`, 4. `UnknownCommandError`), certain errors are significantly less likely to be triggered during blind fuzzing. For instance, the probability of reaching an unknown command error is very low because frames are usually discarded earlier due to SOF or checksum mismatches.
+
+To address this, a set of fixing mutations is provided in the form of function wrappers:
+
+* `correct_checksum_wrapper(...)` 
+  * `flip_random_bit`
+  * `flip_random_byte`
+  * `increase_byte`
+  * `decrease_byte`
+
+* `correct_sof_wrapper(...)` 
+  * `flip_random_bit`
+  * `flip_random_byte`
+  * `increase_byte`
+  * `decrease_byte`
+
+* `correct_sof_wrapper(correct_checksum_wrapper(...))` 
+  * `flip_random_bit`
+  * `flip_random_byte`
+  * `increase_byte`
+  * `decrease_byte`
+
 ### Selection Weights & Rationale
 
-Mutations are selected using `fuzz_frame()` according to assigned probability weights:
+Mutations are selected in `fuzz_frame()` according to assigned probability weights. The `fuzz_full()` function applies a sequence of these consecutive mutations to an initial valid frame and returns the full mutation history. The weights for every mutation are:
 
-* `delete_random_byte`: 1
-* `insert_random_byte`: 1
-* `flip_random_bit`: 4
-* `flip_random_byte`: 2
-* `increase_byte`: 3
-* `decrease_byte`: 3
+* **Basic mutations (80% overall probability):**
+  * `delete_random_byte`: 16
+  * `insert_random_byte`: 16
+  * `flip_random_bit`: 64
+  * `flip_random_byte`: 32
+  * `increase_byte`: 48
+  * `decrease_byte`: 48
 
-**Rationale:** These probability values were chosen intuitively based on real-world transmission error scenarios. Single-bit flips (noise on physical lines) and minor arithmetic shifts (off-by-one errors) are far more common than complete byte corruption or structural packet loss/insertion.
+* **Fixing mutations (20% overall probability):**
+  * `correct_checksum_wrapper` (4 variants): weight of 4 each
+  * `correct_sof_wrapper` (4 variants): weight of 4 each 
+  * `correct_sof_wrapper(correct_checksum_wrapper(...))` (4 variants): weight of 6 each 
 
-The `fuzz_full()` function applies a sequence of consecutive mutations to an initial valid frame and returns the full mutation history.
+These probability values were chosen intuitively based on real-world transmission error scenarios. Single-bit flips (noise on physical lines) and minor arithmetic shifts (off-by-one errors) are far more common than complete byte corruption or structural packet loss/insertion. Furthermore, maintaining a 4:1 overall ratio (80% blind mutations to 20% fixing/smart mutations) balances raw physical line error simulation with business logic testing. Notably, the weight ratios for both basic and fixing mutations can be further adjusted based on the specification of the simulated device or derived empirically.

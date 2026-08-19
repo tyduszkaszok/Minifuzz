@@ -137,6 +137,7 @@ class MutationFuzzer:
 
     @staticmethod
     def correct_sof_wrapper(mutator: Callable[[bytes], bytes]) -> Callable[[bytes], bytes]:
+        """Fixes mutations that modify the magic byte."""
         def correct_sof(b: bytes) -> bytes:
             mutated = mutator(b)
             if mutated:
@@ -146,6 +147,7 @@ class MutationFuzzer:
 
     @staticmethod
     def correct_checksum_wrapper(mutator: Callable[[bytes], bytes]) -> Callable[[bytes], bytes]:
+        """Fixes mutations that modify the checksum."""
         def correct_checksum(b: bytes) -> bytes:
             mutated = mutator(b)
             if len(mutated) == 5:
