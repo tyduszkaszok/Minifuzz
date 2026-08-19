@@ -57,7 +57,8 @@ class FakeDevice:
             return {"status": "SUCCESS", "Response": "PONG"}
 
         if cmd == Command.READ:
-            read_data = random.randint(0, 65535)
+            address = int.from_bytes(b[2:4], byteorder="big")
+            read_data = (address ^ 0xA5A5) & 0xFFFF
             return {"status": "SUCCESS", "Read value": read_data}
 
         if cmd == Command.WRITE:
