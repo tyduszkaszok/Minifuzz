@@ -1,5 +1,5 @@
 import random
-from typing import List
+from typing import List, Callable
 
 
 class MutationFuzzer:
@@ -32,7 +32,26 @@ class MutationFuzzer:
             self.decrease_byte
         ]
 
-        self.weights = [1, 1, 4, 2, 3, 3]
+        self.fixing_mutators = [
+            self.correct_checksum_wrapper(self.flip_random_bit),
+            self.correct_checksum_wrapper(self.flip_random_byte),
+            self.correct_checksum_wrapper(self.increase_byte),
+            self.correct_checksum_wrapper(self.decrease_byte), 
+
+            self.correct_sof_wrapper(self.flip_random_bit),
+            self.correct_sof_wrapper(self.flip_random_byte),
+            self.correct_sof_wrapper(self.increase_byte),
+            self.correct_sof_wrapper(self.decrease_byte),
+
+            self.correct_sof_wrapper(self.correct_checksum_wrapper(self.flip_random_bit)),
+            self.correct_sof_wrapper(self.correct_checksum_wrapper(self.flip_random_byte)),
+            self.correct_sof_wrapper(self.correct_checksum_wrapper(self.increase_byte)),
+            self.correct_sof_wrapper(self.correct_checksum_wrapper(self.decrease_byte))
+        ]
+
+        self.all_mutators = self.mutators + self.fixing_mutators
+
+        self.weights = [16, 16, 64, 32, 48, 48, 4, 4, 4, 4, 4, 4, 4, 4, 6, 6, 6, 6]
 
     def fuzz_full(self, b : bytes) -> List[bytes]:
         """Generates a sequence of mutated frames derived from an initial valid frame.
@@ -60,7 +79,7 @@ class MutationFuzzer:
         Returns:
             bytes: Mutated byte frame after applying a randomly selected mutator.
         """
-        mutator = random.choices(self.mutators, weights=self.weights, k=1)[0]
+        mutator = random.choices(self.all_mutators, weights=self.weights, k=1)[0]
         return mutator(b)
     
     @staticmethod
@@ -115,3 +134,22 @@ class MutationFuzzer:
         pos = random.randint(0, len(b) - 1)
         new_byte = (b[pos] - 1) % 256
         return b[:pos] + bytes([new_byte]) + b[pos + 1 :]
+
+    @staticmethod
+    def correct_sof_wrapper(mutator: Callable[[bytes], bytes]) -> Callable[[bytes], bytes]:
+        def correct_sof(b: bytes) -> bytes:
+            mutated = mutator(b)
+            if mutated:
+                return bytes([0xA5]) + mutated[1:]
+            return mutated
+        return correct_sof
+
+    @staticmethod
+    def correct_checksum_wrapper(mutator: Callable[[bytes], bytes]) -> Callable[[bytes], bytes]:
+        def correct_checksum(b: bytes) -> bytes:
+            mutated = mutator(b)
+            if len(mutated) == 5:
+                new_cs = sum(mutated[:4]) % 256
+                return mutated[:4] + bytes([new_cs])
+            return mutated
+        return correct_checksum

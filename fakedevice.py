@@ -53,7 +53,7 @@ class FakeDevice:
             return {"status": "SUCCESS", "Response": "PONG"}
 
         if cmd == Command.READ:
-            read_data = random.randint(0, 255)
+            read_data = random.randint(0, 65535)
             return {"status": "SUCCESS", "Read value": read_data}
 
         if cmd == Command.WRITE:

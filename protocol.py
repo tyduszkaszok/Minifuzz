@@ -32,7 +32,7 @@ class ProtFrame:
         """Calculates the checksum according to the protocol specification.
 
         Computes a 1-byte checksum by summing MAGIC, command byte,
-        and both bytes of the value modulo 256.
+        and both bytes of the value field modulo 256.
         """
         byte_left = (self.value >> 8) & 0xFF
         byte_right = self.value & 0xFF
