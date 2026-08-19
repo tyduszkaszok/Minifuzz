@@ -151,7 +151,7 @@ Responsible for modifying bit or byte values within the frame:
 
 ### 3. **Fixing mutations**
 
-Due to the hierarchy of exceptions thrown by the `FakeDevice` class (1. `InvalidLengthError`, 2. `InvalidSOFError`, 3. `ChecksumMismatchError`, 4. `UnknownCommandError`), certain errors are significantly less likely to be triggered during blind fuzzing. For instance, the probability of reaching an unknown command error is very low because frames are usually discarded earlier due to SOF or checksum mismatches.
+Due to the hierarchy of exceptions thrown by the `FakeDevice` class (1. `InvalidLengthError`, 2. `InvalidSOFError`, 3. `ChecksumMismatchError`, 4. `UnknownCommandError`, 5. `InvalidValueError`), certain errors are significantly less likely to be triggered during blind fuzzing. For instance, the probability of reaching an unknown command error is very low because frames are usually discarded earlier due to SOF or checksum mismatches.
 
 To address this, a set of fixing mutations is provided in the form of function wrappers:
 
